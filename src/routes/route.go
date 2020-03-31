@@ -12,9 +12,11 @@ func NewRouter(h *handlers.Provider) *chi.Mux {
 
 	r.Route("/v1", func(r chi.Router) {
 
-		r.Get("/vendors", h.GetVendors)              // GET Vendor Details
-		r.Post("/vendor/new", h.InsertVendorDetails) // Save Vendor Details
-		r.Put("/vendor/{id}", h.UpdateVendorDetails) // Update Vendor Details
+		r.Get("/vendors/list", h.GetVendors)                   // GET Vendor Details
+		r.Post("/vendor/new", h.InsertVendorDetails)           // Save Vendor Details
+		r.Put("/vendor/{id}/edit", h.UpdateVendorDetails)      // Update Vendor Details
+		r.Delete("/vendor/{id}/delete", h.RemoveVendorDetails) // Remove Vendor Details
+
 		r.Get("/ping", h.Ping)
 
 	})

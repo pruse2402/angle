@@ -5,7 +5,6 @@ import (
 	"angle/src/errs"
 	"angle/src/internal"
 	"angle/src/models"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -103,9 +102,6 @@ func (p *Provider) UpdateVendorDetails(rw http.ResponseWriter, r *http.Request) 
 	}
 
 	vendorDetails, err := datastore.NewVendorDetails(dbSession).FindByID(bson.ObjectIdHex(vendorID))
-
-	fmt.Println("vendorDetails : ", vendorDetails)
-
 	if err != nil {
 		p.log.Printf("ERROR: Handler - Update - %q\n", err)
 		err := &errs.UIErr{
@@ -121,7 +117,6 @@ func (p *Provider) UpdateVendorDetails(rw http.ResponseWriter, r *http.Request) 
 	}
 
 	hasErr, validationErr := internal.Validation(p.db, *vendorDetails)
-
 	if hasErr {
 		log.Printf("ERROR: InsertVendorDetails - %q\n", validationErr)
 		err := &errs.AppError{
@@ -155,4 +150,48 @@ func (p *Provider) UpdateVendorDetails(rw http.ResponseWriter, r *http.Request) 
 
 	renderJson(rw, http.StatusOK, res)
 
+}
+
+func (p *Provider) RemoveVendorDetails(rw http.ResponseWriter, r *http.Request) {
+
+	dbSession := p.db.Copy()
+	defer dbSession.Close()
+
+	vendorID := chi.URLParam(r, "id")
+	if !isObjectIDValid(vendorID) {
+		p.log.Printf("ERROR: Handler - Update - %q\n", `Invalid vendor ID Supplied.`)
+		err := &errs.UIErr{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid vendor ID Supplied.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	vendorDetails, err := datastore.NewVendorDetails(dbSession).FindByID(bson.ObjectIdHex(vendorID))
+	if err != nil {
+		p.log.Printf("ERROR: Handler - Update - %q\n", err)
+		err := &errs.UIErr{
+			Code:    http.StatusNotFound,
+			Message: "Could not find vendor details!.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	err = internal.DeleteVendorDetails(p.db, vendorID, "vendorDetails", vendorDetails)
+	if err != nil {
+		p.log.Printf("ERROR: Handler - Delete - %q\n", err)
+		renderError(rw, err)
+		return
+	}
+
+	// Constructing response for client
+	res := struct {
+		Message string `json:"message"`
+	}{
+		"Vendor Details Removed Successfully.",
+	}
+
+	renderJson(rw, http.StatusOK, res)
 }
