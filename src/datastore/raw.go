@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type rawMaterial struct {
@@ -73,4 +74,16 @@ func (raw *rawMaterial) Validate(rawMaterial models.RawMaterial) (bool, map[stri
 	// }
 
 	return v.HasErrors(), v.ErrorMap()
+}
+
+func (raw *rawMaterial) FindAllRawMaterial() (*[]models.RawMaterial, error) {
+
+	rawMaterial := &[]models.RawMaterial{}
+	err := raw.collection.Find(bson.M{}).All(rawMaterial)
+	if err != nil {
+		log.Printf("ERROR: FindRawMaterialDetails - %q\n", err)
+		return nil, err
+	}
+
+	return rawMaterial, nil
 }

@@ -25,7 +25,8 @@ func NewRouter(h *handlers.Provider) *chi.Mux {
 		r.Delete("/customer/{id}/delete", h.RemoveCustomerDetails) // Remove Customer Details
 
 		// Raw routes
-		r.Post("/raw/new", h.InsertRawMaterial) // Save Raw Material Details
+		r.Get("/rawMaterials/list", h.GetRawMaterials)  // GET Raw Material Details
+		r.Post("/rawMaterial/new", h.InsertRawMaterial) // Save Raw Material Details
 
 		r.Get("/ping", h.Ping)
 

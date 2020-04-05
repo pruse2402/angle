@@ -68,3 +68,23 @@ func (p *Provider) InsertRawMaterial(rw http.ResponseWriter, r *http.Request) {
 	return
 
 }
+
+func (p *Provider) GetRawMaterials(rw http.ResponseWriter, r *http.Request) {
+	dbSession := p.db.Copy()
+	defer dbSession.Close()
+
+	rawMaterials, err := datastore.NewRawMaterial(dbSession).FindAllRawMaterial()
+	if err != nil {
+		log.Printf("ERROR: GetRawMaterialDetailList %s", err)
+		return
+	}
+
+	resp := struct {
+		RawMaterials *[]models.RawMaterial `json:"rawMaterials"`
+	}{
+		rawMaterials,
+	}
+
+	renderJson(rw, http.StatusOK, resp)
+
+}
