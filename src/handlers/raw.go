@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -87,4 +88,71 @@ func (p *Provider) GetRawMaterials(rw http.ResponseWriter, r *http.Request) {
 
 	renderJson(rw, http.StatusOK, resp)
 
+}
+
+func (p *Provider) UpdateRawMaterial(rw http.ResponseWriter, r *http.Request) {
+
+	dbSession := p.db.Copy()
+	defer dbSession.Close()
+
+	rawID := chi.URLParam(r, "id")
+
+	if !isObjectIDValid(rawID) {
+		p.log.Printf("ERROR: Handler - Update - %q\n", `Invalid raw material ID Supplied.`)
+		err := &errs.UIErr{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid raw material ID Supplied.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	rawMaterials, err := datastore.NewRawMaterial(dbSession).FindByID(bson.ObjectIdHex(rawID))
+	if err != nil {
+		p.log.Printf("ERROR: Handler - Update - %q\n", err)
+		err := &errs.UIErr{
+			Code:    http.StatusNotFound,
+			Message: "Could not find raw material details!.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	if !parseJson(rw, r.Body, &rawMaterials) {
+		return
+	}
+
+	hasErr, validationErr := internal.RawValidation(p.db, *rawMaterials)
+	if hasErr {
+		log.Printf("ERROR: UpdateRawMaterialDetails - %q\n", validationErr)
+		err := &errs.AppError{
+			Message: "Validation Error(s)",
+			Errors:  validationErr,
+		}
+		respondError(rw, http.StatusBadRequest, err)
+		return
+	}
+
+	rawMaterials.LastUpdated = time.Now().UTC()
+
+	if err = datastore.NewRawMaterial(dbSession).Update(rawMaterials.Id, *rawMaterials); err != nil {
+		p.log.Printf("ERROR: Handler - Update - %q\n", err)
+		err := &errs.UIErr{
+			Code:    http.StatusInternalServerError,
+			Message: "Something went wrong!. Please try again!.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	// Constructing response for client
+	res := struct {
+		ID      bson.ObjectId `json:"id"`
+		Message string        `json:"message"`
+	}{
+		rawMaterials.Id,
+		"raw materials updated successfully.",
+	}
+
+	renderJson(rw, http.StatusOK, res)
 }

@@ -87,3 +87,24 @@ func (raw *rawMaterial) FindAllRawMaterial() (*[]models.RawMaterial, error) {
 
 	return rawMaterial, nil
 }
+
+func (raw *rawMaterial) FindByID(id bson.ObjectId) (*models.RawMaterial, error) {
+
+	rawMaterialIns := &models.RawMaterial{}
+	err := raw.collection.FindId(id).One(rawMaterialIns)
+	if err != nil && err != mgo.ErrNotFound {
+		log.Printf("ERROR: FindByID(%s) - %s\n", id, err)
+		return nil, err
+	}
+	return rawMaterialIns, nil
+
+}
+
+func (raw *rawMaterial) Update(id bson.ObjectId, rawMaterial models.RawMaterial) error {
+	err := raw.collection.UpdateId(id, &rawMaterial)
+	if err != nil {
+		log.Printf("ERROR: Update(%s, %s) - %s\n", id, rawMaterial.Id, err)
+		return err
+	}
+	return nil
+}
