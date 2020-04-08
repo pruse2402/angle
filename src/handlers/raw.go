@@ -156,3 +156,47 @@ func (p *Provider) UpdateRawMaterial(rw http.ResponseWriter, r *http.Request) {
 
 	renderJson(rw, http.StatusOK, res)
 }
+
+func (p *Provider) RemoveRawMaterial(rw http.ResponseWriter, r *http.Request) {
+
+	dbSession := p.db.Copy()
+	defer dbSession.Close()
+
+	rawID := chi.URLParam(r, "id")
+	if !isObjectIDValid(rawID) {
+		p.log.Printf("ERROR: Handler - Update - %q\n", `Invalid Raw ID Supplied.`)
+		err := &errs.UIErr{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid Raw ID Supplied.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	rawMaterial, err := datastore.NewRawMaterial(dbSession).FindByID(bson.ObjectIdHex(rawID))
+	if err != nil {
+		p.log.Printf("ERROR: Handler - Update - %q\n", err)
+		err := &errs.UIErr{
+			Code:    http.StatusNotFound,
+			Message: "Could not find raw material details!.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	err = internal.DeleteRawMaterial(p.db, rawID, "rawMaterial", rawMaterial)
+	if err != nil {
+		p.log.Printf("ERROR: Handler - Delete - %q\n", err)
+		renderError(rw, err)
+		return
+	}
+
+	// Constructing response for client
+	res := struct {
+		Message string `json:"message"`
+	}{
+		"Raw Material Details Removed Successfully.",
+	}
+
+	renderJson(rw, http.StatusOK, res)
+}
