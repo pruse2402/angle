@@ -28,7 +28,7 @@ func NewRawMaterial(db *mgo.Session) services.RawMaterial {
 func (raw *rawMaterial) InsertRawMaterial(rawMaterial models.RawMaterial) (*models.RawMaterial, error) {
 
 	if err := raw.collection.Insert(&rawMaterial); err != nil {
-		log.Printf("ERROR: InsertMenuItem(%s) - %q\n", rawMaterial.Name, err)
+		log.Printf("ERROR: InsertRawMaterial(%s) - %q\n", rawMaterial.Name, err)
 		return nil, err
 	}
 

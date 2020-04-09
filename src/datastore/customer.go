@@ -28,7 +28,7 @@ func NewCustomerDetails(db *mgo.Session) services.CustomerDetails {
 func (customer *customerDetails) InsertCustomerDetails(customerDetail models.CustomerDetails) (*models.CustomerDetails, error) {
 
 	if err := customer.collection.Insert(&customerDetail); err != nil {
-		log.Printf("ERROR: InsertMenuItem(%s) - %q\n", customerDetail.Name, err)
+		log.Printf("ERROR: InsertCustomerDetails(%s) - %q\n", customerDetail.Name, err)
 		return nil, err
 	}
 

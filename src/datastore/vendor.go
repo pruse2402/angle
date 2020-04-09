@@ -26,59 +26,16 @@ func NewVendorDetails(db *mgo.Session) services.VendorDetails {
 	}
 }
 
-// func (vendor *vendorDetails) FindCount(vendorDetail models.VendorDetails) int {
-
-// 	query := bson.M{"createdFor": menuItem.CreatedFor}
-// 	c, _ := menu.collection.Find(query).Count()
-
-// 	return c
-// }
-
-// func (menu *menuItem) FindByID(id bson.ObjectId) (*models.MenuItem, error) {
-
-// 	menuItemIns := &models.MenuItem{}
-// 	err := menu.collection.FindId(id).One(menuItemIns)
-// 	if err != nil && err != mgo.ErrNotFound {
-// 		log.Printf("ERROR: FindByID(%s) - %s\n", id, err)
-// 		return nil, err
-// 	}
-// 	return menuItemIns, nil
-
-// }
-
-// func (menu *menuItem) FindByStoreID(storeID string) (*[]models.MenuItem, error) {
-
-// 	menuItems := &[]models.MenuItem{}
-// 	query := bson.M{"createdFor": bson.ObjectIdHex(storeID)}
-
-// 	err := menu.collection.Find(query).All(menuItems)
-// 	if err != nil {
-// 		log.Printf("ERROR: FindMenuItemsByStoreID(%s) - %q\n", storeID, err)
-// 		return nil, err
-// 	}
-
-// 	return menuItems, nil
-// }
-
 func (vendor *vendorDetails) InsertVendorDetails(vendorDetail models.VendorDetails) (*models.VendorDetails, error) {
 
 	if err := vendor.collection.Insert(&vendorDetail); err != nil {
-		log.Printf("ERROR: InsertMenuItem(%s) - %q\n", vendorDetail.Name, err)
+		log.Printf("ERROR: InsertVendorDetails(%s) - %q\n", vendorDetail.Name, err)
 		return nil, err
 	}
 
 	return &vendorDetail, nil
 
 }
-
-// func (menu *menuItem) Update(id bson.ObjectId, menuItemIns models.MenuItem) error {
-// 	err := menu.collection.UpdateId(id, &menuItemIns)
-// 	if err != nil {
-// 		log.Printf("ERROR: Update(%s, %s) - %s\n", id, menuItemIns.Id, err)
-// 		return err
-// 	}
-// 	return nil
-// }
 
 func (vendor *vendorDetails) Validate(vendorDetail models.VendorDetails) (bool, map[string]interface{}) {
 
