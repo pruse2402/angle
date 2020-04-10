@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type employeeDetails struct {
@@ -55,4 +56,16 @@ func (employee *employeeDetails) Validate(employeeDetail models.EmployeeDetails)
 	}
 
 	return v.HasErrors(), v.ErrorMap()
+}
+
+func (employee *employeeDetails) FindAllEmployee() (*[]models.EmployeeDetails, error) {
+
+	employeeDetail := &[]models.EmployeeDetails{}
+	err := employee.collection.Find(bson.M{}).All(employeeDetail)
+	if err != nil {
+		log.Printf("ERROR: FindEmployeeDetails - %q\n", err)
+		return nil, err
+	}
+
+	return employeeDetail, nil
 }

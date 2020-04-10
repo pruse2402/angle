@@ -58,3 +58,24 @@ func (p *Provider) InsertEmployee(rw http.ResponseWriter, r *http.Request) {
 	return
 
 }
+
+func (p *Provider) GetEmployee(rw http.ResponseWriter, r *http.Request) {
+
+	dbSession := p.db.Copy()
+	defer dbSession.Close()
+
+	employeeDetails, err := datastore.NewEmployeeDetails(dbSession).FindAllEmployee()
+	if err != nil {
+		log.Printf("ERROR: GetEmployeeDetailList %s", err)
+		return
+	}
+
+	resp := struct {
+		EmployeeDetails *[]models.EmployeeDetails `json:"employeeDetails"`
+	}{
+		employeeDetails,
+	}
+
+	renderJson(rw, http.StatusOK, resp)
+
+}

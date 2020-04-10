@@ -31,7 +31,8 @@ func NewRouter(h *handlers.Provider) *chi.Mux {
 		r.Delete("/rawMaterial/{id}/delete", h.RemoveRawMaterial) // Remove Raw Material Details
 
 		// Employee routes
-		r.Post("/employee/new", h.InsertEmployee)
+		r.Get("/employee/list", h.GetEmployee)    // GET Employee Details
+		r.Post("/employee/new", h.InsertEmployee) // Save Employee Details
 
 		r.Get("/ping", h.Ping)
 
