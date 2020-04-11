@@ -147,3 +147,47 @@ func (p *Provider) UpdateEmployee(rw http.ResponseWriter, r *http.Request) {
 
 	renderJson(rw, http.StatusOK, res)
 }
+
+func (p *Provider) RemoveEmployee(rw http.ResponseWriter, r *http.Request) {
+
+	dbSession := p.db.Copy()
+	defer dbSession.Close()
+
+	employeeID := chi.URLParam(r, "id")
+	if !isObjectIDValid(employeeID) {
+		p.log.Printf("ERROR: Handler - Update - %q\n", `Invalid Employee ID Supplied.`)
+		err := &errs.UIErr{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid Employee ID Supplied.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	employeeDetails, err := datastore.NewEmployeeDetails(dbSession).FindByID(bson.ObjectIdHex(employeeID))
+	if err != nil {
+		p.log.Printf("ERROR: Handler - Update - %q\n", err)
+		err := &errs.UIErr{
+			Code:    http.StatusNotFound,
+			Message: "Could not find employee details!.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	err = internal.DeleteEmployee(p.db, employeeID, "employeeDetails", employeeDetails)
+	if err != nil {
+		p.log.Printf("ERROR: Handler - Delete - %q\n", err)
+		renderError(rw, err)
+		return
+	}
+
+	// Constructing response for client
+	res := struct {
+		Message string `json:"message"`
+	}{
+		"Employee Details Removed Successfully.",
+	}
+
+	renderJson(rw, http.StatusOK, res)
+}
