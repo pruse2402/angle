@@ -69,3 +69,24 @@ func (employee *employeeDetails) FindAllEmployee() (*[]models.EmployeeDetails, e
 
 	return employeeDetail, nil
 }
+
+func (employee *employeeDetails) FindByID(id bson.ObjectId) (*models.EmployeeDetails, error) {
+
+	employeeDetailsIns := &models.EmployeeDetails{}
+	err := employee.collection.FindId(id).One(employeeDetailsIns)
+	if err != nil && err != mgo.ErrNotFound {
+		log.Printf("ERROR: FindByID(%s) - %s\n", id, err)
+		return nil, err
+	}
+	return employeeDetailsIns, nil
+
+}
+
+func (employee *employeeDetails) Update(id bson.ObjectId, empDetail models.EmployeeDetails) error {
+	err := employee.collection.UpdateId(id, &empDetail)
+	if err != nil {
+		log.Printf("ERROR: Update(%s, %s) - %s\n", id, empDetail.Id, err)
+		return err
+	}
+	return nil
+}

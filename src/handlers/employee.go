@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -78,4 +79,71 @@ func (p *Provider) GetEmployee(rw http.ResponseWriter, r *http.Request) {
 
 	renderJson(rw, http.StatusOK, resp)
 
+}
+
+func (p *Provider) UpdateEmployee(rw http.ResponseWriter, r *http.Request) {
+
+	dbSession := p.db.Copy()
+	defer dbSession.Close()
+
+	employeeID := chi.URLParam(r, "id")
+
+	if !isObjectIDValid(employeeID) {
+		p.log.Printf("ERROR: Handler - Update - %q\n", `Invalid employee ID Supplied.`)
+		err := &errs.UIErr{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid employee ID Supplied.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	employeeDetail, err := datastore.NewEmployeeDetails(dbSession).FindByID(bson.ObjectIdHex(employeeID))
+	if err != nil {
+		p.log.Printf("ERROR: Handler - Update - %q\n", err)
+		err := &errs.UIErr{
+			Code:    http.StatusNotFound,
+			Message: "Could not find employee details!.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	if !parseJson(rw, r.Body, &employeeDetail) {
+		return
+	}
+
+	hasErr, validationErr := internal.EmployeeValidation(p.db, *employeeDetail)
+	if hasErr {
+		log.Printf("ERROR: UpdateEmployeeDetails - %q\n", validationErr)
+		err := &errs.AppError{
+			Message: "Validation Error(s)",
+			Errors:  validationErr,
+		}
+		respondError(rw, http.StatusBadRequest, err)
+		return
+	}
+
+	employeeDetail.LastUpdated = time.Now().UTC()
+
+	if err = datastore.NewEmployeeDetails(dbSession).Update(employeeDetail.Id, *employeeDetail); err != nil {
+		p.log.Printf("ERROR: Handler - Update - %q\n", err)
+		err := &errs.UIErr{
+			Code:    http.StatusInternalServerError,
+			Message: "Something went wrong!. Please try again!.",
+		}
+		renderError(rw, err)
+		return
+	}
+
+	// Constructing response for client
+	res := struct {
+		ID      bson.ObjectId `json:"id"`
+		Message string        `json:"message"`
+	}{
+		employeeDetail.Id,
+		"raw materials updated successfully.",
+	}
+
+	renderJson(rw, http.StatusOK, res)
 }
