@@ -7,6 +7,7 @@ import (
 	"angle/src/models"
 	"log"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -79,6 +80,8 @@ func (p *Provider) GetRawMaterials(rw http.ResponseWriter, r *http.Request) {
 		log.Printf("ERROR: GetRawMaterialDetailList %s", err)
 		return
 	}
+
+	sort.Sort(models.RawMaterialByName(*rawMaterials))
 
 	resp := struct {
 		RawMaterials *[]models.RawMaterial `json:"rawMaterials"`

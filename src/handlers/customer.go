@@ -7,6 +7,7 @@ import (
 	"angle/src/models"
 	"log"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -73,6 +74,8 @@ func (p *Provider) GetCustomers(rw http.ResponseWriter, r *http.Request) {
 		log.Printf("ERROR: GetCustomerDetailList %s", err)
 		return
 	}
+
+	sort.Sort(models.CustomerDetailsByName(*customerDetails))
 
 	resp := struct {
 		CustomerDetails *[]models.CustomerDetails `json:"customerDetails"`
