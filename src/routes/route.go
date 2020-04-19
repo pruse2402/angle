@@ -36,6 +36,11 @@ func NewRouter(h *handlers.Provider) *chi.Mux {
 		r.Put("/employee/{id}/edit", h.UpdateEmployee)      // Update Employee Details
 		r.Delete("/employee/{id}/delete", h.RemoveEmployee) // Remove Employee Details
 
+		// Machine routes
+		r.Get("/machine/list", h.GetMachine)              // GET Machine Details
+		r.Post("/machine/new", h.InsertMachine)           // Save Machine Details
+		r.Put("/machine/{id}/edit", h.UpdateMachine)      // Update Machine Details
+		r.Delete("/machine/{id}/delete", h.RemoveMachine) // Remove Machine Details
 		r.Get("/ping", h.Ping)
 
 	})
