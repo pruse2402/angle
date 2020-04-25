@@ -4,11 +4,22 @@ import (
 	"angle/src/handlers"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/render"
 )
 
 func NewRouter(h *handlers.Provider) *chi.Mux {
 
 	r := chi.NewRouter()
+
+	r.Use(
+		render.SetContentType(render.ContentTypeJSON), // Set content-Type headers as application/json
+		middleware.Logger, // Log API request calls
+		// middleware.DefaultCompress, // Compress results, mostly gzipping assets and json
+		middleware.RedirectSlashes, // Redirect slashes to no slash URL versions
+		middleware.Recoverer,       // Recover from panics without crashing server,
+		middleware.RequestID,
+	)
 
 	r.Route("/v1", func(r chi.Router) {
 
@@ -41,6 +52,13 @@ func NewRouter(h *handlers.Provider) *chi.Mux {
 		r.Post("/machine/new", h.InsertMachine)           // Save Machine Details
 		r.Put("/machine/{id}/edit", h.UpdateMachine)      // Update Machine Details
 		r.Delete("/machine/{id}/delete", h.RemoveMachine) // Remove Machine Details
+
+		// Part routes
+		// r.Get("/part/list", h.GetPart)              // GET Part Details
+		r.Post("/part/new", h.InsertPart) // Save Part Details
+		// r.Put("/part/{id}/edit", h.UpdatePart)      // Update Part Details
+		// r.Delete("/part/{id}/delete", h.RemovePart) // Remove Part Details
+
 		r.Get("/ping", h.Ping)
 
 	})
